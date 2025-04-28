@@ -11,17 +11,6 @@ services:
       - redis-data:/data
     networks:
       - mcp-network
-    # ports:
-    #   - 6379:6379
-
-  # mcp-server:
-  #   container_name: mcp-server
-  #   hostname: mcp-server
-  #   build: ./redis-mcp-server
-  #   ports:
-  #     - 8090:8080
-  #   networks:
-  #     - mcp-network
 
   mcp-server:
     container_name: mcp-server

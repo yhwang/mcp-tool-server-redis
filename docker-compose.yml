@@ -1,0 +1,39 @@
+networks:
+  mcp-network:
+    driver: bridge
+
+services:
+  redis:
+    container_name: redis
+    hostname: redis
+    image: redis
+    volumes:
+      - redis-data:/data
+    networks:
+      - mcp-network
+    # ports:
+    #   - 6379:6379
+
+  # mcp-server:
+  #   container_name: mcp-server
+  #   hostname: mcp-server
+  #   build: ./redis-mcp-server
+  #   ports:
+  #     - 8090:8080
+  #   networks:
+  #     - mcp-network
+
+  mcp-server:
+    container_name: mcp-server
+    hostname: mcp-server
+    build: ./mcp-server
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - 3000:3000
+    networks:
+      - mcp-network
+
+volumes:
+  redis-data:

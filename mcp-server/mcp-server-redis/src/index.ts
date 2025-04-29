@@ -9,7 +9,13 @@ import {
     CallToolRequestSchema,
     ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { createRedisClient, SetArgumentsSchema, GetArgumentsSchema, DeleteArgumentsSchema, ListArgumentsSchema } from './redis-client.js';
+import {
+    createRedisClient,
+    SetArgumentsSchema,
+    GetArgumentsSchema,
+    DeleteArgumentsSchema,
+    ListArgumentsSchema
+} from './redis-client.js';
 import { z } from "zod";
 import { RedisClientType, RedisModules, RedisFunctions, RedisScripts } from "redis";
 
@@ -20,17 +26,7 @@ const REDIS_URL = process.argv[2] || "redis://localhost:6379";
 const redisClient = await createRedisClient(REDIS_URL);
 console.log('redis client is created');
 
-// Handle process termination
-process.on('SIGINT', async () => {
-    await redisClient.quit().catch(() => {});
-    process.exit(0);
-});
-
-process.on('SIGTERM', async () => {
-    await redisClient.quit().catch(() => {});
-    process.exit(0);
-});
-
+// Create a MCP server with tools primitives serving 4 functions, including set, get, delete and list.
 function createServer(redisClient: RedisClientType<RedisModules, RedisFunctions, RedisScripts>): Server {
     // Create server instance
     const server = new Server(
@@ -239,6 +235,7 @@ app.post('/mcp', async (req, res) => {
             sessionIdGenerator: () => randomUUID(),
             // enableJsonResponse: true,
             onsessioninitialized: (sessionId) => {
+                console.log(`new transport: ${sessionId}`);
                 // Store the transport by session ID
                 transports[sessionId] = transport;
             }
@@ -247,6 +244,7 @@ app.post('/mcp', async (req, res) => {
         // Clean up transport when closed
         transport.onclose = () => {
             if (transport.sessionId) {
+                console.log(`clean up transport: ${transport.sessionId}`);
                 delete transports[transport.sessionId];
             }
         };
@@ -287,6 +285,34 @@ app.get('/mcp', handleSessionRequest);
 
 // Handle DELETE requests for session termination
 app.delete('/mcp', handleSessionRequest);
+
+async function handleTermination() {
+    console.log('Shutting down server...');
+    // Close all active transports to properly clean up resources
+    for (const sessionId in transports) {
+        try {
+            console.log(`Closing transport for session ${sessionId}`);
+            await transports[sessionId].close();
+            delete transports[sessionId];
+        } catch (error) {
+            console.error(`Error closing transport for session ${sessionId}:`, error);
+        }
+    }
+    // Then the redis connection
+    await redisClient.quit().catch(() => { });
+    console.log('Server shut down successfully');
+}
+
+// Handle process termination
+process.on('SIGINT', async () => {
+    await handleTermination();
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    await handleTermination();
+    process.exit(0);
+});
 
 app.listen(3000, (error) => {
     if (error) {

@@ -20,13 +20,13 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
-    "@types/node": "^22.10.2",
     "@types/redis": "^4.0.10",
     "express": "^5.1.0",
     "redis": "^4.7.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",
+    "@types/node": "^22.15.3",
     "shx": "^0.3.4",
     "typescript": "^5.7.2"
   }

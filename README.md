@@ -12,6 +12,7 @@ This starts a MCP server with Redis as the backend. The server will be available
 
 ## Interact with MCP server
 
+### Option 1: streamable HTTP client from the typescript-sdk
 You can interact with the MCP server using the simple streamable HTTP client from the MCP typescript-sdk repo:
 https://github.com/modelcontextprotocol/typescript-sdk.git
 
@@ -71,3 +72,22 @@ Tool result:
   Successfully set key: this is a new key
 
 ```
+
+### Option2: MCP-Cli
+
+You can also use the `mcp-cli` command line tool to interact with your MCP server. To use it, run the following command:
+```
+npx @wong2/mcp-cli --url http://localhost:3000/mcp
+```
+
+This will connect to the MCP server via streamable HTTP. It will prompt you the list of available tools and allow you to call them with JSON arguments. For example:
+```
+$ npx @wong2/mcp-cli --url http://localhost:3000/mcp
+✔ Connected, server capabilities: tools
+? Pick a primitive ›
+❯   tool(set) - Set a Redis key-value pair with optional expiration
+    tool(get) - Get value by key from Redis
+    tool(delete) - Delete one or more keys from Redis
+    tool(list) - List Redis keys matching a pattern
+```
+You can use cursor to navigate the list and select the desired primitive. Then, you will be prompted to enter the arguments for the selected primitive.
